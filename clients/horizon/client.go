@@ -357,6 +357,7 @@ func (c *Client) stream(
 	query := url.Values{}
 	if cursor != nil {
 		query.Set("cursor", string(*cursor))
+		query.Set("limit", "200")
 	}
 
 	client := http.Client{}
@@ -553,4 +554,25 @@ func (c *Client) SubmitTransaction(
 	}
 
 	return
+}
+
+
+// StreamTransactions streams incoming transactions. Use context.WithCancel to stop streaming or
+// context.Background() if you want to stream indefinitely.
+func (c *Client) StreamAllTransactions(
+	ctx context.Context,
+	cursor *Cursor,
+	handler TransactionHandler,
+) (err error) {
+	c.fixURLOnce.Do(c.fixURL)
+	url := fmt.Sprintf("%s/transactions", c.URL)
+	return c.stream(ctx, url, cursor, func(data []byte) error {
+		var transaction Transaction
+		err = json.Unmarshal(data, &transaction)
+		if err != nil {
+			return errors.Wrap(err, "Error unmarshaling data")
+		}
+		handler(transaction)
+		return nil
+	})
 }
