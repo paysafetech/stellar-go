@@ -145,6 +145,16 @@ func (m *MockClient) StreamTransactions(
 	return a.Error(0)
 }
 
+// StreamAllTransactions is a mocking a method
+func (m *MockClient) StreamAllTransactions(
+	ctx context.Context,
+	cursor *Cursor,
+	handler TransactionHandler,
+) error {
+	a := m.Called(ctx, cursor, handler)
+	return a.Error(0)
+}
+
 // SubmitTransaction is a mocking a method
 func (m *MockClient) SubmitTransaction(
 	txeBase64 string,
